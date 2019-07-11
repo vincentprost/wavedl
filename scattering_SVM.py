@@ -24,18 +24,20 @@ test = np.load("C:/Hung/Data/variable_stock/MNIST for clsuter/data_testing.npy")
 labels_test = np.load("C:/Hung/Data/variable_stock/MNIST for clsuter/labels_testing.npy")
 """
 
-data, labels, test, labels_test = mnist.load()
 
+data, labels, test, labels_test = mnist.load()
 
 
 from sklearn.svm import SVC
 clf = SVC(kernel = "linear")
 
 
-X_train = np.array(data[:1000],dtype = np.float32)/255.
-y_train = labels[:1000]
-X_test = np.array(test[:1000],dtype = np.float32)/255.
-y_test = labels_test[:1000]
+n_train = 10000
+n_test = 1000
+X_train = np.array(data[:n_train],dtype = np.float32)/255.
+y_train = labels[:n_train]
+X_test = np.array(test[:n_test],dtype = np.float32)/255.
+y_test = labels_test[:n_test]
 
 clf.fit(X_train,y_train)
 
@@ -48,8 +50,8 @@ n_correct_test = np.array([y_test[i] == clf.predict([X_test[i,:]])
 
 
 
-X_train2D = X_train.reshape(1000,1,28,28)
-X_test2D = X_test.reshape(1000,1,28,28)
+X_train2D = X_train.reshape(n_train,1,28,28)
+X_test2D = X_test.reshape(n_test,1,28,28)
 
 import matplotlib.pyplot as plt
 
@@ -74,8 +76,8 @@ patch_size = X_test_scat.shape[3]
 
 
 
-X_train_2D_scat = np.array(X_train_scat.reshape(1000, patch_nb * patch_size**2))
-X_test_2D_scat = np.array(X_test_scat.reshape(1000, patch_nb * patch_size**2))
+X_train_2D_scat = np.array(X_train_scat.reshape(n_train, patch_nb * patch_size**2))
+X_test_2D_scat = np.array(X_test_scat.reshape(n_test, patch_nb * patch_size**2))
 
 
 
@@ -83,10 +85,10 @@ clf.fit(X_train_2D_scat ,y_train)
 
 
 
-n_correct_train_scat = np.array([y_train[i] == clf.predict([X_train_2D_scat[i,:]])
+n_correct_train_scat_svm = np.array([y_train[i] == clf.predict([X_train_2D_scat[i,:]])
                                           for i in range(X_train_2D_scat.shape[0])]).nonzero()[0].size/float(y_train.shape[0])
         
-n_correct_test_scat = np.array([y_test[i] == clf.predict([X_test_2D_scat[i,:]])
+n_correct_test_scat_svm = np.array([y_test[i] == clf.predict([X_test_2D_scat[i,:]])
                                           for i in range(X_test_2D_scat.shape[0])]).nonzero()[0].size/float(y_test.shape[0])
 
 
@@ -106,19 +108,18 @@ param = { 'K' : 100, # learns a dictionary with 100 elements
 D = spams.trainDL(X_train_2D_scat.T,**param)
 alpha_train = spams.lasso(X_train_2D_scat.T, D = D, lambda1 = lamda).toarray().T
 alpha_test = spams.lasso(X_test_2D_scat.T, D = D, lambda1 = lamda).toarray().T
+
+
+
 clf = SVC(kernel = "linear")
-
-
-
 clf.fit(alpha_train ,y_train)
 
 
 
-n_correct_train_scat = np.array([y_train[i] == clf.predict([alpha_train[i,:]])
+n_correct_train_scat_dl = np.array([y_train[i] == clf.predict([alpha_train[i,:]])
                                           for i in range(X_train_2D_scat.shape[0])]).nonzero()[0].size/float(y_train.shape[0])
         
-n_correct_test_scat = np.array([y_test[i] == clf.predict([alpha_test[i,:]])
+n_correct_test_scat_dl = np.array([y_test[i] == clf.predict([alpha_test[i,:]])
                                           for i in range(X_test_2D_scat.shape[0])]).nonzero()[0].size/float(y_test.shape[0])
 
 print(n_correct_test_scat)
-
